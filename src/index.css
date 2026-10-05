@@ -1,21 +1,44 @@
 @import 'tailwindcss';
 
+/* Light tokens. Dark values are swapped in below via [data-theme='dark'] on <html>. */
 @theme {
   --font-sans: ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --color-cream: #faf8f3;
+  --color-canvas: #faf8f3;
+  --color-surface: #ffffff;
   --color-ink: #1f2a24;
-  --color-muted: #66706a;
+  --color-muted: #5f6a64;
   --color-line: #e7e2d6;
   --color-brand: #2f6f4f;
   --color-brand-dark: #245a3f;
   --color-brand-soft: #e3efe7;
+  --color-on-brand: #ffffff;
   --color-accent: #e08a3c;
   --color-danger: #c2412d;
   --color-danger-soft: #fbe6e1;
-  --color-warn: #b7791f;
+  --color-warn: #9a6416;
   --color-warn-soft: #fdf1d8;
   --color-ok: #2f6f4f;
   --color-ok-soft: #e3efe7;
+}
+
+:root[data-theme='dark'] {
+  --color-canvas: #111714;
+  --color-surface: #1a221e;
+  --color-ink: #e7ece9;
+  --color-muted: #a3b0a9;
+  --color-line: #2e3a34;
+  --color-brand: #6cc39a;
+  --color-brand-dark: #8fd3b1;
+  --color-brand-soft: #1d3329;
+  --color-on-brand: #0d1a13;
+  --color-accent: #f0a35e;
+  --color-danger: #f08a78;
+  --color-danger-soft: #3a1f1a;
+  --color-warn: #e8b45a;
+  --color-warn-soft: #382c14;
+  --color-ok: #6cc39a;
+  --color-ok-soft: #1d3329;
+  color-scheme: dark;
 }
 
 html,
@@ -25,7 +48,7 @@ body,
 }
 
 body {
-  background-color: var(--color-cream);
+  background-color: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;

@@ -1,11 +1,12 @@
 import { NavLink, Outlet } from 'react-router';
-import { BookIcon, CalendarIcon, CartIcon, ClockIcon } from './icons';
+import { BookIcon, CalendarIcon, CartIcon, ClockIcon, UserIcon } from './icons';
 
 const tabs = [
   { to: '/', label: 'Week', Icon: CalendarIcon, end: true },
   { to: '/recipes', label: 'Recipes', Icon: BookIcon, end: false },
   { to: '/groceries', label: 'Groceries', Icon: CartIcon, end: false },
   { to: '/use-soon', label: 'Use soon', Icon: ClockIcon, end: false },
+  { to: '/account', label: 'Account', Icon: UserIcon, end: false },
 ];
 
 export function AppShell() {
@@ -16,16 +17,16 @@ export function AppShell() {
       </main>
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
       >
-        <ul className="mx-auto grid max-w-md grid-cols-4">
+        <ul className="mx-auto grid max-w-md grid-cols-5">
           {tabs.map(({ to, label, Icon, end }) => (
             <li key={to}>
               <NavLink
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  `flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-semibold ${
+                  `flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${
                     isActive ? 'text-brand' : 'text-muted'
                   }`
                 }

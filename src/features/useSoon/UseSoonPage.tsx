@@ -61,7 +61,7 @@ export function UseSoonPage() {
                   <li key={m.recipe.id}>
                     <Link
                       to={`/recipes/${m.recipe.id}`}
-                      className="block min-h-14 rounded-2xl bg-white px-4 py-3 ring-1 ring-line hover:ring-brand"
+                      className="block min-h-14 rounded-2xl bg-surface px-4 py-3 ring-1 ring-line hover:ring-brand"
                     >
                       <span className="block font-semibold">{m.recipe.name}</span>
                       <span className="text-sm text-muted">Uses {m.uses.map((u) => u.name.toLowerCase()).join(', ')}</span>

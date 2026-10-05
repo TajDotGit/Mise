@@ -47,10 +47,11 @@ src/
   config/      env parsing (Zod over import.meta.env)
   domain/      pure logic + Zod schemas — NO React, NO I/O (grocery, leftovers, suggestions, dates)
   data/        repository interfaces, React context/hooks, implementations (memory/ for Phase 0)
+  data/seed/    the pre-loaded ingredient catalog (reference data, not mock data)
   mock/        generic mock recipes, plan, household
   components/  shared presentational UI (shell, buttons, sheets, badges)
-  features/    one folder per screen: plan, recipes, grocery, useSoon
-docs/          spec.md, decisions.md, security-plan.md
+  features/    one folder per screen: plan, recipes, grocery, useSoon, account (+ week, theme)
+docs/          spec.md, decisions.md, backlog.md, security-plan.md
 ```
 
 ## Architecture rules
@@ -65,6 +66,11 @@ docs/          spec.md, decisions.md, security-plan.md
 4. Keep files small; one concern per file.
 5. Grocery items and leftovers are always **derived** from the plan, never stored.
    The only stored grocery state is which lines are checked.
+6. **Ingredients come from the catalog.** Recipes store `ingredientId` + quantity +
+   one of that ingredient's units. Never add free-text ingredient names.
+7. Colors use theme tokens (`bg-canvas`, `bg-surface`, `text-ink`, `text-muted`,
+   `border-line`, `bg-brand`, `text-on-brand`, …) defined in `src/index.css` for
+   light and dark. Don't use raw `bg-white` / `text-white`.
 
 ## Security and public-repo rules (always apply)
 

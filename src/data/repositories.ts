@@ -1,4 +1,12 @@
-import type { DateRange, IsoDate, PlanEntry, Recipe, RecipeInput } from '../domain/schemas';
+import type {
+  CatalogIngredient,
+  DateRange,
+  Household,
+  IsoDate,
+  PlanEntry,
+  Recipe,
+  RecipeInput,
+} from '../domain/schemas';
 
 /**
  * Data-access contracts. UI code depends only on these interfaces; Phase 0 uses
@@ -35,7 +43,20 @@ export interface GroceryRepository extends Subscribable {
   setChecked(key: string, checked: boolean): Promise<void>;
 }
 
+/** The pre-loaded ingredient list. Read-only for now; custom ingredients are on the backlog. */
+export interface CatalogRepository {
+  list(): Promise<CatalogIngredient[]>;
+}
+
+/** The household this device belongs to. Sharing and invites arrive with real accounts. */
+export interface HouseholdRepository extends Subscribable {
+  get(): Promise<Household>;
+  rename(name: string): Promise<Household>;
+}
+
 export interface Repositories {
+  catalog: CatalogRepository;
+  household: HouseholdRepository;
   recipes: RecipeRepository;
   plan: PlanRepository;
   grocery: GroceryRepository;

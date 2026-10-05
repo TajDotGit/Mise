@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import type { DateRange, PlanEntry, Recipe } from '../domain/schemas';
+import { useEffect, useMemo, useState } from 'react';
+import { makeCatalog } from '../domain/catalog';
+import type { CatalogIngredient, DateRange, Household, IngredientCatalog, PlanEntry, Recipe } from '../domain/schemas';
 import type { Subscribable } from './repositories';
 import { useRepositories } from './RepositoryContext';
 
@@ -48,4 +49,19 @@ export function usePlan(range: DateRange): Query<PlanEntry[]> {
 export function useCheckedKeys(): Query<Set<string>> {
   const { grocery } = useRepositories();
   return useLiveQuery([grocery], () => grocery.checkedKeys(), [grocery]);
+}
+
+/** The ingredient catalog as a list (for the picker) and a map (for lookups). */
+export function useCatalog(): { items: CatalogIngredient[]; catalog: IngredientCatalog; loading: boolean } {
+  const { catalog } = useRepositories();
+  const { data, loading } = useLiveQuery([], () => catalog.list(), [catalog]);
+  return useMemo(() => {
+    const items = data ?? [];
+    return { items, catalog: makeCatalog(items), loading };
+  }, [data, loading]);
+}
+
+export function useHousehold(): Query<Household> {
+  const { household } = useRepositories();
+  return useLiveQuery([household], () => household.get(), [household]);
 }

@@ -1,20 +1,34 @@
+import { packSizeFor } from './catalog';
 import { isWithin } from './dates';
-import { itemKey, roundQty } from './quantity';
-import { CATEGORIES, type Category, type DateRange, type GroceryItem, type PlanEntry, type Recipe } from './schemas';
+import { roundQty } from './quantity';
+import {
+  SECTIONS,
+  type DateRange,
+  type GroceryItem,
+  type IngredientCatalog,
+  type PlanEntry,
+  type Recipe,
+  type Section,
+  type Unit,
+} from './schemas';
 
 /** One merged ingredient line across every planned recipe in a range. */
 export interface AggregatedLine {
   key: string;
+  ingredientId: string;
   name: string;
-  unit: string;
-  category: Category;
+  unit: Unit;
+  section: Section;
   quantity: number;
   recipeNames: string[];
   perishable: boolean;
-  /** Shortest shelf life among the perishable sources. */
   shelfLifeDays?: number;
-  /** Largest pack size among the sources. */
+  /** Only set when the line is measured in the unit packs are sold in. */
   packSize?: number;
+}
+
+export function lineKey(ingredientId: string, unit: string): string {
+  return `${ingredientId}|${unit}`;
 }
 
 /** Planned entries inside the range, in date order, with missing recipes dropped. */
@@ -29,64 +43,74 @@ export function plannedRecipes(plan: PlanEntry[], recipes: Recipe[], range: Date
     });
 }
 
-/** Sum ingredient quantities across planned recipes, merging identical name + unit. */
-export function aggregateIngredients(plan: PlanEntry[], recipes: Recipe[], range: DateRange): AggregatedLine[] {
+/**
+ * Sum ingredient quantities across planned recipes, merging lines with the same
+ * catalog ingredient and unit. Names, aisles, and shelf life come from the catalog,
+ * so spelling can never split one ingredient into two lines.
+ */
+export function aggregateIngredients(
+  plan: PlanEntry[],
+  recipes: Recipe[],
+  catalog: IngredientCatalog,
+  range: DateRange,
+): AggregatedLine[] {
   const lines = new Map<string, AggregatedLine>();
   for (const recipe of plannedRecipes(plan, recipes, range)) {
     for (const ing of recipe.ingredients) {
-      const key = itemKey(ing.name, ing.unit);
+      const item = catalog.get(ing.ingredientId);
+      if (!item) continue;
+      const key = lineKey(item.id, ing.unit);
       let line = lines.get(key);
       if (!line) {
+        const packSize = packSizeFor(item, ing.unit);
         line = {
           key,
-          name: ing.name.trim(),
-          unit: ing.unit.trim(),
-          category: ing.category,
+          ingredientId: item.id,
+          name: item.name,
+          unit: ing.unit,
+          section: item.section,
           quantity: 0,
           recipeNames: [],
-          perishable: false,
+          perishable: item.perishable,
+          ...(item.shelfLifeDays !== undefined ? { shelfLifeDays: item.shelfLifeDays } : {}),
+          ...(packSize !== undefined ? { packSize } : {}),
         };
         lines.set(key, line);
       }
       line.quantity = roundQty(line.quantity + ing.quantity);
       if (!line.recipeNames.includes(recipe.name)) line.recipeNames.push(recipe.name);
-      if (ing.perishable) {
-        line.perishable = true;
-        if (ing.shelfLifeDays !== undefined) {
-          line.shelfLifeDays = Math.min(line.shelfLifeDays ?? Infinity, ing.shelfLifeDays);
-        }
-      }
-      if (ing.packSize !== undefined) line.packSize = Math.max(line.packSize ?? 0, ing.packSize);
     }
   }
   return [...lines.values()];
 }
 
-const categoryRank = (c: Category) => CATEGORIES.indexOf(c);
+const sectionRank = (s: Section) => SECTIONS.indexOf(s);
 
 /** The grocery list for a range, sorted by aisle then name. */
 export function buildGroceryList(
   plan: PlanEntry[],
   recipes: Recipe[],
+  catalog: IngredientCatalog,
   range: DateRange,
   checkedKeys: ReadonlySet<string> = new Set(),
 ): GroceryItem[] {
-  return aggregateIngredients(plan, recipes, range)
-    .map(({ key, name, unit, category, quantity, recipeNames }) => ({
+  return aggregateIngredients(plan, recipes, catalog, range)
+    .map(({ key, ingredientId, name, unit, section, quantity, recipeNames }) => ({
       key,
+      ingredientId,
       name,
       unit,
-      category,
+      section,
       quantity,
       recipeNames,
       checked: checkedKeys.has(key),
     }))
-    .sort((a, b) => categoryRank(a.category) - categoryRank(b.category) || a.name.localeCompare(b.name));
+    .sort((a, b) => sectionRank(a.section) - sectionRank(b.section) || a.name.localeCompare(b.name));
 }
 
-/** Group a sorted grocery list by category, keeping aisle order. */
-export function groupByCategory(items: GroceryItem[]): { category: Category; items: GroceryItem[] }[] {
-  return CATEGORIES.map((category) => ({ category, items: items.filter((i) => i.category === category) })).filter(
+/** Group a sorted grocery list by section, keeping aisle order. */
+export function groupBySection(items: GroceryItem[]): { section: Section; items: GroceryItem[] }[] {
+  return SECTIONS.map((section) => ({ section, items: items.filter((i) => i.section === section) })).filter(
     (g) => g.items.length > 0,
   );
 }

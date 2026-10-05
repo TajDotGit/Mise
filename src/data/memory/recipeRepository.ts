@@ -1,12 +1,33 @@
 import { z } from 'zod';
-import { RecipeInputSchema, RecipeSchema, type Recipe, type RecipeInput } from '../../domain/schemas';
+import { makeCatalog, validateAgainstCatalog } from '../../domain/catalog';
+import {
+  RecipeInputSchema,
+  RecipeSchema,
+  type CatalogIngredient,
+  type Recipe,
+  type RecipeInput,
+} from '../../domain/schemas';
 import type { RecipeRepository } from '../repositories';
 import { Emitter, nextId } from './emitter';
 
 const IdSchema = z.string().min(1).max(100);
 
-export function createMemoryRecipeRepository(seed: Recipe[] = []): RecipeRepository {
-  const store = new Map<string, Recipe>(seed.map((r) => [r.id, RecipeSchema.parse(r)]));
+export function createMemoryRecipeRepository(seed: Recipe[], catalogItems: CatalogIngredient[]): RecipeRepository {
+  const catalog = makeCatalog(catalogItems);
+
+  /** Schema check plus: every ingredient must exist in the catalog, in one of its units. */
+  const parse = (input: unknown): RecipeInput => {
+    const value = RecipeInputSchema.parse(input);
+    const issues = validateAgainstCatalog(value.ingredients, catalog);
+    if (issues.length > 0) {
+      throw new z.ZodError(
+        issues.map((i) => ({ code: 'custom', path: ['ingredients', i.index, i.field], message: i.message, input })),
+      );
+    }
+    return value;
+  };
+
+  const store = new Map<string, Recipe>(seed.map((r) => [r.id, { ...parse(r), id: RecipeSchema.parse(r).id }]));
   const emitter = new Emitter();
 
   return {
@@ -19,7 +40,7 @@ export function createMemoryRecipeRepository(seed: Recipe[] = []): RecipeReposit
       return r ? structuredClone(r) : undefined;
     },
     async create(input: RecipeInput) {
-      const recipe: Recipe = { ...RecipeInputSchema.parse(input), id: nextId('recipe') };
+      const recipe: Recipe = { ...parse(input), id: nextId('recipe') };
       store.set(recipe.id, recipe);
       emitter.emit();
       return structuredClone(recipe);
@@ -27,7 +48,7 @@ export function createMemoryRecipeRepository(seed: Recipe[] = []): RecipeReposit
     async update(id, input) {
       const key = IdSchema.parse(id);
       if (!store.has(key)) throw new Error('Recipe not found');
-      const recipe: Recipe = { ...RecipeInputSchema.parse(input), id: key };
+      const recipe: Recipe = { ...parse(input), id: key };
       store.set(key, recipe);
       emitter.emit();
       return structuredClone(recipe);

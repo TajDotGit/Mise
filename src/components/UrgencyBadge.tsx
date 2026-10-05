@@ -1,7 +1,7 @@
 import type { Urgency } from '../domain/leftovers';
 
 const styles: Record<Urgency, string> = {
-  expired: 'bg-danger text-white',
+  expired: 'bg-danger text-on-brand',
   today: 'bg-danger-soft text-danger',
   soon: 'bg-warn-soft text-warn',
   later: 'bg-ok-soft text-ok',

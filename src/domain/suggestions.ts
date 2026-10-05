@@ -1,6 +1,7 @@
 import { eachDay, isWithin } from './dates';
 import { daysLeft } from './leftovers';
-import { itemKey, roundQty } from './quantity';
+import { lineKey } from './grocery';
+import { roundQty } from './quantity';
 import type { DateRange, IsoDate, Leftover, PlanEntry, Recipe } from './schemas';
 
 /** Leftovers with this many days or fewer left are worth using up. */
@@ -49,7 +50,7 @@ export function rankRecipes(
     if (exclude.has(recipe.id)) continue;
     const needs = new Map<string, number>();
     for (const ing of recipe.ingredients) {
-      const key = itemKey(ing.name, ing.unit);
+      const key = lineKey(ing.ingredientId, ing.unit);
       needs.set(key, (needs.get(key) ?? 0) + ing.quantity);
     }
     let score = 0;

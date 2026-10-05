@@ -5,12 +5,12 @@ import { useWeek } from './WeekContext';
 export function WeekSwitcher() {
   const { range, isCurrentWeek, shiftWeek, resetWeek } = useWeek();
   return (
-    <div className="mb-4 flex items-center justify-between gap-2 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-line">
+    <div className="mb-4 flex items-center justify-between gap-2 rounded-2xl bg-surface p-1 shadow-sm ring-1 ring-line">
       <button
         type="button"
         onClick={() => shiftWeek(-1)}
         aria-label="Previous week"
-        className="grid size-12 place-items-center rounded-xl text-muted hover:bg-cream"
+        className="grid size-12 place-items-center rounded-xl text-muted hover:bg-canvas"
       >
         <ChevronLeftIcon />
       </button>
@@ -27,7 +27,7 @@ export function WeekSwitcher() {
         type="button"
         onClick={() => shiftWeek(1)}
         aria-label="Next week"
-        className="grid size-12 place-items-center rounded-xl text-muted hover:bg-cream"
+        className="grid size-12 place-items-center rounded-xl text-muted hover:bg-canvas"
       >
         <ChevronRightIcon />
       </button>

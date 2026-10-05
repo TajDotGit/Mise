@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { AppShell } from './components/AppShell';
+import { AccountPage } from './features/account/AccountPage';
 import { EmptyState } from './components/EmptyState';
 import { ClockProvider } from './data/ClockContext';
 import type { Repositories } from './data/repositories';
@@ -11,6 +12,7 @@ import { WeekPlanPage } from './features/plan/WeekPlanPage';
 import { RecipeDetailPage } from './features/recipes/RecipeDetailPage';
 import { RecipeFormPage } from './features/recipes/RecipeFormPage';
 import { RecipesPage } from './features/recipes/RecipesPage';
+import { ThemeProvider } from './features/theme/ThemeContext';
 import { UseSoonPage } from './features/useSoon/UseSoonPage';
 import { WeekProvider } from './features/week/WeekContext';
 
@@ -25,6 +27,7 @@ export function AppRoutes() {
         <Route path="recipes/:id/edit" element={<RecipeFormPage />} />
         <Route path="groceries" element={<GroceryPage />} />
         <Route path="use-soon" element={<UseSoonPage />} />
+        <Route path="account" element={<AccountPage />} />
         <Route path="*" element={<EmptyState title="Page not found" />} />
       </Route>
     </Routes>
@@ -44,7 +47,9 @@ export function AppProviders({
   return (
     <RepositoryProvider repositories={repositories}>
       <ClockProvider today={today}>
-        <WeekProvider>{children}</WeekProvider>
+        <ThemeProvider>
+          <WeekProvider>{children}</WeekProvider>
+        </ThemeProvider>
       </ClockProvider>
     </RepositoryProvider>
   );

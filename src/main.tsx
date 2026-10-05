@@ -5,6 +5,7 @@ import './index.css';
 import { App } from './App';
 import { createMemoryRepositories } from './data/memory';
 import { toIsoDate } from './domain/dates';
+import { mockHousehold } from './mock/household';
 import { buildMockPlan } from './mock/plan';
 import { mockRecipes } from './mock/recipes';
 
@@ -14,7 +15,11 @@ if (!container) throw new Error('Root element #root not found');
 // Composition root: Phase 0 uses in-memory repositories seeded with mock data.
 // A later phase swaps this line for the Supabase implementation.
 const today = toIsoDate(new Date());
-const repositories = createMemoryRepositories({ recipes: mockRecipes, plan: buildMockPlan(today) });
+const repositories = createMemoryRepositories({
+  recipes: mockRecipes,
+  plan: buildMockPlan(today),
+  household: mockHousehold,
+});
 
 createRoot(container).render(
   <StrictMode>

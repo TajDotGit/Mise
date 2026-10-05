@@ -29,7 +29,7 @@ export function RecipePicker({
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search recipes"
         aria-label="Search recipes"
-        className="mb-3 min-h-12 w-full rounded-2xl border border-line bg-white px-4"
+        className="mb-3 min-h-12 w-full rounded-2xl border border-line bg-surface px-4"
       />
       <ul className="flex flex-col gap-2">
         {filtered.map((r) => (
@@ -37,7 +37,7 @@ export function RecipePicker({
             <button
               type="button"
               onClick={() => onPick(r.id)}
-              className="flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-left ring-1 ring-line hover:ring-brand"
+              className="flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3 text-left ring-1 ring-line hover:ring-brand"
             >
               <span className="font-semibold">{r.name}</span>
               {suggestedIds.includes(r.id) ? (

@@ -1,120 +1,199 @@
-import type { Category, Ingredient, Recipe } from '../domain/schemas';
+import type { Recipe, RecipeIngredient, Unit } from '../domain/schemas';
 
-// Generic mock recipes. Ingredients overlap on purpose so leftovers appear.
+// Generic mock recipes built from catalog ids. Ingredients overlap on purpose so
+// leftovers appear. Links use the reserved example.com domain.
 
-const item = (name: string, quantity: number, unit: string, category: Category): Ingredient => ({
-  name,
-  quantity,
-  unit,
-  category,
-  perishable: false,
-});
-
-const fresh = (
-  name: string,
-  quantity: number,
-  unit: string,
-  category: Category,
-  shelfLifeDays: number,
-  packSize?: number,
-): Ingredient => ({ name, quantity, unit, category, perishable: true, shelfLifeDays, ...(packSize ? { packSize } : {}) });
-
-// Shared perishables (same name, unit, shelf life, and pack everywhere).
-const beef = (lb: number) => fresh('Ground beef', lb, 'lb', 'meat & fish', 2, 1);
-const chicken = (lb: number) => fresh('Chicken breast', lb, 'lb', 'meat & fish', 2, 1.5);
-const cilantro = (bunch: number) => fresh('Cilantro', bunch, 'bunch', 'produce', 2, 1);
-const spinach = (cup: number) => fresh('Baby spinach', cup, 'cup', 'produce', 3, 5);
-const cream = (cup: number) => fresh('Heavy cream', cup, 'cup', 'dairy & eggs', 7, 1);
-const sourCream = (cup: number) => fresh('Sour cream', cup, 'cup', 'dairy & eggs', 10, 1);
-const tortillas = (n: number) => fresh('Flour tortillas', n, 'each', 'bakery', 7, 10);
-const parmesan = (cup: number) => fresh('Parmesan', cup, 'cup', 'dairy & eggs', 21, 1);
-const bellPepper = (n: number) => fresh('Bell pepper', n, 'each', 'produce', 7);
-const onion = (n: number) => item('Onion', n, 'each', 'produce');
-const rice = (cup: number) => item('Rice', cup, 'cup', 'pantry');
+const i = (ingredientId: string, quantity: number, unit: Unit): RecipeIngredient => ({ ingredientId, quantity, unit });
 
 export const mockRecipes: Recipe[] = [
   {
     id: 'spaghetti',
     name: 'Spaghetti Bolognese',
     servings: 2,
-    ingredients: [beef(1), item('Spaghetti', 1, 'box', 'pantry'), item('Crushed tomatoes', 1, 'can', 'pantry'), onion(1), item('Garlic', 2, 'clove', 'produce'), parmesan(0.25)],
-    notes: 'Simmer the sauce at least 20 minutes. Freezes well.',
+    cookMinutes: 45,
+    ingredients: [
+      i('ground-beef', 1, 'lb'),
+      i('spaghetti', 1, 'box'),
+      i('crushed-tomatoes', 1, 'can'),
+      i('onion', 1, 'each'),
+      i('garlic', 2, 'clove'),
+      i('parmesan', 0.25, 'cup'),
+    ],
+    steps: ['Brown the beef with onion and garlic', 'Add tomatoes and simmer 20 min', 'Boil spaghetti', 'Toss and top with parmesan'],
+    notes: 'Freezes well.',
   },
   {
     id: 'tacos',
     name: 'Beef Tacos',
     servings: 2,
-    ingredients: [beef(0.5), tortillas(6), cilantro(0.5), item('Lime', 1, 'each', 'produce'), sourCream(0.5), item('Cheddar', 1, 'cup', 'dairy & eggs')],
-    notes: 'Warm the tortillas in a dry pan.',
+    cookMinutes: 25,
+    link: 'https://www.example.com/videos/weeknight-tacos',
+    ingredients: [
+      i('ground-beef', 0.5, 'lb'),
+      i('flour-tortillas', 6, 'each'),
+      i('taco-seasoning', 2, 'tbsp'),
+      i('cilantro', 0.5, 'bunch'),
+      i('lime', 1, 'each'),
+      i('sour-cream', 0.5, 'cup'),
+      i('cheddar', 1, 'cup'),
+    ],
+    steps: ['Brown beef with taco seasoning', 'Warm tortillas in a dry pan', 'Chop cilantro, cut lime', 'Assemble with cheese and sour cream'],
+    notes: '',
   },
   {
     id: 'fish-chips',
     name: 'Fish and Chips',
     servings: 2,
-    ingredients: [fresh('Cod fillets', 1, 'lb', 'meat & fish', 2, 1), item('Potatoes', 2, 'lb', 'produce'), item('Flour', 1, 'cup', 'pantry'), item('Lemon', 1, 'each', 'produce')],
-    notes: 'Oven chips: 220°C for 35 minutes, flip halfway.',
+    cookMinutes: 40,
+    ingredients: [
+      i('cod', 1, 'lb'),
+      i('potato', 2, 'lb'),
+      i('flour', 1, 'cup'),
+      i('lemon', 1, 'each'),
+      i('vegetable-oil', 2, 'cup'),
+    ],
+    steps: ['Cut potatoes, oven-bake at 220°C for 35 min', 'Make a simple flour batter', 'Fry the fish 4–5 min', 'Serve with lemon'],
+    notes: 'Flip the chips halfway.',
   },
   {
     id: 'stir-fry',
     name: 'Chicken Stir Fry',
     servings: 2,
-    ingredients: [chicken(1), bellPepper(2), fresh('Broccoli', 1, 'head', 'produce', 5), item('Soy sauce', 3, 'tbsp', 'pantry'), rice(1)],
-    notes: 'Cook the rice first. High heat, small batches.',
+    cookMinutes: 30,
+    ingredients: [
+      i('chicken-breast', 1, 'lb'),
+      i('bell-pepper', 2, 'each'),
+      i('broccoli', 1, 'head'),
+      i('soy-sauce', 3, 'tbsp'),
+      i('white-rice', 1, 'cup'),
+      i('ginger', 1, 'tbsp'),
+    ],
+    steps: ['Start the rice', 'Slice chicken and veg', 'Sear chicken on high heat', 'Add veg, then soy and ginger'],
+    notes: 'Small batches keep it crisp.',
   },
   {
     id: 'fajitas',
     name: 'Chicken Fajitas',
     servings: 2,
-    ingredients: [chicken(1), bellPepper(2), onion(1), tortillas(6), sourCream(0.5), cilantro(0.5)],
+    cookMinutes: 30,
+    link: 'https://www.example.com/videos/sheet-pan-fajitas',
+    ingredients: [
+      i('chicken-breast', 1, 'lb'),
+      i('bell-pepper', 2, 'each'),
+      i('onion', 1, 'each'),
+      i('flour-tortillas', 6, 'each'),
+      i('sour-cream', 0.5, 'cup'),
+      i('cilantro', 0.5, 'bunch'),
+      i('taco-seasoning', 1, 'tbsp'),
+    ],
+    steps: ['Slice chicken, peppers, and onion', 'Toss with seasoning', 'Roast or sear until charred', 'Serve in warm tortillas'],
     notes: '',
   },
   {
     id: 'curry',
     name: 'Chickpea Spinach Curry',
     servings: 3,
-    ingredients: [spinach(3), item('Coconut milk', 1, 'can', 'pantry'), item('Chickpeas', 1, 'can', 'pantry'), rice(1), onion(1), item('Curry paste', 2, 'tbsp', 'pantry')],
-    notes: 'Stir the spinach in at the very end.',
+    cookMinutes: 35,
+    ingredients: [
+      i('baby-spinach', 3, 'cup'),
+      i('coconut-milk', 1, 'can'),
+      i('chickpeas', 1, 'can'),
+      i('white-rice', 1, 'cup'),
+      i('onion', 1, 'each'),
+      i('curry-paste', 2, 'tbsp'),
+    ],
+    steps: ['Start the rice', 'Soften onion, fry curry paste', 'Add coconut milk and chickpeas, simmer 15 min', 'Stir in spinach at the end'],
+    notes: '',
   },
   {
     id: 'salmon-bowls',
     name: 'Salmon Rice Bowls',
     servings: 2,
-    ingredients: [fresh('Salmon fillets', 0.75, 'lb', 'meat & fish', 2), rice(1), fresh('Cucumber', 1, 'each', 'produce', 7), spinach(2), item('Soy sauce', 2, 'tbsp', 'pantry')],
+    cookMinutes: 25,
+    ingredients: [
+      i('salmon', 0.75, 'lb'),
+      i('white-rice', 1, 'cup'),
+      i('cucumber', 1, 'each'),
+      i('baby-spinach', 2, 'cup'),
+      i('soy-sauce', 2, 'tbsp'),
+      i('avocado', 1, 'each'),
+    ],
+    steps: ['Start the rice', 'Roast salmon 12 min at 200°C', 'Slice cucumber and avocado', 'Build bowls, drizzle soy'],
     notes: '',
   },
   {
     id: 'shepherds-pie',
     name: "Shepherd's Pie",
     servings: 4,
-    ingredients: [beef(1), item('Potatoes', 2, 'lb', 'produce'), item('Frozen peas', 1, 'cup', 'frozen'), cream(0.5), onion(1)],
-    notes: 'Makes enough for lunch the next day.',
+    cookMinutes: 75,
+    ingredients: [
+      i('ground-beef', 1, 'lb'),
+      i('potato', 2, 'lb'),
+      i('frozen-peas', 1, 'cup'),
+      i('heavy-cream', 0.5, 'cup'),
+      i('onion', 1, 'each'),
+      i('carrot', 2, 'each'),
+    ],
+    steps: ['Boil and mash potatoes with cream', 'Brown beef with onion and carrot', 'Add peas, pour into dish', 'Top with mash, bake 25 min'],
+    notes: 'Enough for lunch the next day.',
   },
   {
     id: 'pesto-pasta',
     name: 'Creamy Pesto Pasta',
     servings: 2,
-    ingredients: [chicken(0.5), item('Penne', 1, 'box', 'pantry'), item('Pesto', 0.5, 'cup', 'pantry'), cream(0.5), spinach(2), parmesan(0.25)],
+    cookMinutes: 20,
+    ingredients: [
+      i('chicken-breast', 0.5, 'lb'),
+      i('penne', 1, 'box'),
+      i('pesto', 0.5, 'cup'),
+      i('heavy-cream', 0.5, 'cup'),
+      i('baby-spinach', 2, 'cup'),
+      i('parmesan', 0.25, 'cup'),
+    ],
+    steps: ['Boil penne', 'Cook sliced chicken', 'Add cream and pesto, wilt spinach', 'Toss with pasta and parmesan'],
     notes: '',
   },
   {
     id: 'caesar-wraps',
     name: 'Chicken Caesar Wraps',
     servings: 2,
-    ingredients: [chicken(0.5), fresh('Romaine', 1, 'head', 'produce', 5), tortillas(4), parmesan(0.25), item('Caesar dressing', 0.25, 'cup', 'pantry')],
+    cookMinutes: 20,
+    ingredients: [
+      i('chicken-breast', 0.5, 'lb'),
+      i('romaine', 1, 'head'),
+      i('flour-tortillas', 4, 'each'),
+      i('parmesan', 0.25, 'cup'),
+      i('caesar-dressing', 0.25, 'cup'),
+    ],
+    steps: ['Cook and slice chicken', 'Chop romaine, toss with dressing', 'Fill wraps and roll'],
     notes: 'Good for using up leftover chicken.',
   },
   {
     id: 'minestrone',
     name: 'Minestrone Soup',
     servings: 4,
-    ingredients: [spinach(2), item('Crushed tomatoes', 1, 'can', 'pantry'), item('Cannellini beans', 1, 'can', 'pantry'), item('Small pasta', 1, 'cup', 'pantry'), fresh('Carrots', 2, 'each', 'produce', 14), onion(1)],
+    cookMinutes: 50,
+    link: 'https://www.example.com/videos/easy-minestrone',
+    ingredients: [
+      i('baby-spinach', 2, 'cup'),
+      i('crushed-tomatoes', 1, 'can'),
+      i('cannellini-beans', 1, 'can'),
+      i('small-pasta', 1, 'cup'),
+      i('carrot', 2, 'each'),
+      i('celery', 2, 'stalk'),
+      i('onion', 1, 'each'),
+      i('vegetable-broth', 4, 'cup'),
+    ],
+    steps: ['Soften onion, carrot, and celery', 'Add tomatoes, broth, and beans', 'Simmer 20 min, add pasta', 'Stir in spinach before serving'],
     notes: '',
   },
   {
     id: 'breakfast-dinner',
     name: 'Breakfast for Dinner',
     servings: 2,
-    ingredients: [fresh('Eggs', 6, 'each', 'dairy & eggs', 21, 12), fresh('Bacon', 0.5, 'lb', 'meat & fish', 7, 1), item('Bread', 4, 'slice', 'bakery'), fresh('Tomatoes', 2, 'each', 'produce', 5)],
+    cookMinutes: 20,
+    ingredients: [i('eggs', 6, 'each'), i('bacon', 0.5, 'lb'), i('bread', 4, 'slice'), i('tomato', 2, 'each')],
+    steps: ['Cook bacon in the oven', 'Scramble or fry eggs', 'Toast bread, grill tomatoes'],
     notes: 'Pancakes optional.',
   },
 ];

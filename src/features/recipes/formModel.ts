@@ -1,83 +1,93 @@
 import type { z } from 'zod';
-import { RecipeInputSchema, type Category, type Recipe, type RecipeInput } from '../../domain/schemas';
+import { validateAgainstCatalog } from '../../domain/catalog';
+import { RecipeInputSchema, type IngredientCatalog, type Recipe, type RecipeInput, type Unit } from '../../domain/schemas';
 
 /** Form fields are strings while editing; they're converted and validated on submit. */
 export interface IngredientDraft {
-  name: string;
+  ingredientId: string;
   quantity: string;
-  unit: string;
-  category: Category;
-  perishable: boolean;
-  shelfLifeDays: string;
-  packSize: string;
+  unit: Unit | '';
 }
 
 export interface RecipeDraft {
   name: string;
   servings: string;
+  cookMinutes: string;
+  link: string;
   notes: string;
+  steps: string[];
   ingredients: IngredientDraft[];
 }
 
-export const emptyIngredient = (): IngredientDraft => ({
-  name: '',
-  quantity: '',
-  unit: '',
-  category: 'produce',
-  perishable: false,
-  shelfLifeDays: '',
-  packSize: '',
-});
+export const emptyIngredient = (): IngredientDraft => ({ ingredientId: '', quantity: '', unit: '' });
 
 export function toDraft(recipe?: Recipe): RecipeDraft {
-  if (!recipe) return { name: '', servings: '2', notes: '', ingredients: [emptyIngredient()] };
+  if (!recipe) {
+    return { name: '', servings: '2', cookMinutes: '', link: '', notes: '', steps: [''], ingredients: [emptyIngredient()] };
+  }
   return {
     name: recipe.name,
     servings: String(recipe.servings),
+    cookMinutes: recipe.cookMinutes === undefined ? '' : String(recipe.cookMinutes),
+    link: recipe.link ?? '',
     notes: recipe.notes,
+    steps: recipe.steps.length > 0 ? [...recipe.steps] : [''],
     ingredients: recipe.ingredients.map((i) => ({
-      name: i.name,
+      ingredientId: i.ingredientId,
       quantity: String(i.quantity),
       unit: i.unit,
-      category: i.category,
-      perishable: i.perishable,
-      shelfLifeDays: i.shelfLifeDays === undefined ? '' : String(i.shelfLifeDays),
-      packSize: i.packSize === undefined ? '' : String(i.packSize),
     })),
   };
 }
 
 const num = (s: string) => (s.trim() === '' ? NaN : Number(s));
 const optNum = (s: string) => (s.trim() === '' ? undefined : Number(s));
+const optText = (s: string) => (s.trim() === '' ? undefined : s.trim());
 
 export type FieldErrors = Record<string, string>;
 
-/** Convert the draft and validate it with the same schema the repository uses. */
-export function parseDraft(draft: RecipeDraft): { ok: true; value: RecipeInput } | { ok: false; errors: FieldErrors } {
+/** Convert the draft and validate it with the same rules the repository uses. */
+export function parseDraft(
+  draft: RecipeDraft,
+  catalog: IngredientCatalog,
+): { ok: true; value: RecipeInput } | { ok: false; errors: FieldErrors } {
   const candidate = {
     name: draft.name,
     servings: num(draft.servings),
+    cookMinutes: optNum(draft.cookMinutes),
+    link: optText(draft.link),
     notes: draft.notes,
+    // Blank step rows are just unused slots.
+    steps: draft.steps.filter((s) => s.trim() !== ''),
     ingredients: draft.ingredients.map((i) => ({
-      name: i.name,
+      ingredientId: i.ingredientId,
       quantity: num(i.quantity),
       unit: i.unit,
-      category: i.category,
-      perishable: i.perishable,
-      ...(i.perishable ? { shelfLifeDays: optNum(i.shelfLifeDays), packSize: optNum(i.packSize) } : {}),
     })),
   };
   const result = RecipeInputSchema.safeParse(candidate);
-  if (result.success) return { ok: true, value: result.data };
-  return { ok: false, errors: toFieldErrors(result.error) };
+  const errors: FieldErrors = result.success ? {} : toFieldErrors(result.error);
+  for (const issue of validateAgainstCatalog(
+    draft.ingredients.map((i) => ({ ingredientId: i.ingredientId, quantity: 1, unit: (i.unit || 'each') as Unit })),
+    catalog,
+  )) {
+    errors[`ingredients.${issue.index}.${issue.field}`] ??= issue.message;
+  }
+  // A missing pick reads better as one message on the picker than as id/unit errors.
+  const unpicked = new Set(draft.ingredients.flatMap((i, index) => (i.ingredientId ? [] : [index])));
+  for (const index of unpicked) errors[`ingredients.${index}.ingredientId`] = 'Pick an ingredient from the list';
+  const filtered = Object.fromEntries(
+    Object.entries(errors).filter(([key]) => {
+      const m = /^ingredients\.(\d+)\.unit$/.exec(key);
+      return !(m && unpicked.has(Number(m[1])));
+    }),
+  );
+  if (result.success && Object.keys(filtered).length === 0) return { ok: true, value: result.data };
+  return { ok: false, errors: filtered };
 }
 
 function toFieldErrors(error: z.ZodError): FieldErrors {
   const errors: FieldErrors = {};
-  for (const issue of error.issues) {
-    const key = issue.path.join('.');
-    const message = issue.code === 'invalid_type' ? 'Enter a number' : issue.message;
-    errors[key] ??= message;
-  }
+  for (const issue of error.issues) errors[issue.path.join('.')] ??= issue.message;
   return errors;
 }

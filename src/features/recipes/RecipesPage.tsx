@@ -4,6 +4,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { PlusIcon } from '../../components/icons';
 import { PageHeader } from '../../components/PageHeader';
 import { useRecipes } from '../../data/hooks';
+import { formatMinutes } from '../../domain/links';
 
 export function RecipesPage() {
   const { data: recipes = [], loading } = useRecipes();
@@ -19,7 +20,7 @@ export function RecipesPage() {
         action={
           <Link
             to="/recipes/new"
-            className="inline-flex min-h-12 items-center gap-1 rounded-2xl bg-brand px-4 font-semibold text-white hover:bg-brand-dark"
+            className="inline-flex min-h-12 items-center gap-1 rounded-2xl bg-brand px-4 font-semibold text-on-brand hover:bg-brand-dark"
           >
             <PlusIcon /> Add
           </Link>
@@ -31,7 +32,7 @@ export function RecipesPage() {
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search recipes"
         aria-label="Search recipes"
-        className="mb-4 min-h-12 w-full rounded-2xl border border-line bg-white px-4"
+        className="mb-4 min-h-12 w-full rounded-2xl border border-line bg-surface px-4"
       />
       {!loading && filtered.length === 0 ? (
         <EmptyState title="No recipes found">Try another search, or add a recipe.</EmptyState>
@@ -41,17 +42,16 @@ export function RecipesPage() {
             <li key={r.id}>
               <Link
                 to={`/recipes/${r.id}`}
-                className="flex min-h-16 items-center justify-between rounded-2xl bg-white px-4 py-3 ring-1 ring-line hover:ring-brand"
+                className="flex min-h-16 items-center justify-between rounded-2xl bg-surface px-4 py-3 ring-1 ring-line hover:ring-brand"
               >
                 <span>
                   <span className="block font-semibold">{r.name}</span>
                   <span className="text-sm text-muted">
-                    Serves {r.servings} · {r.ingredients.length} ingredients
+                    Serves {r.servings}
+                    {r.cookMinutes ? ` · ${formatMinutes(r.cookMinutes)}` : ''} · {r.ingredients.length} ingredients
                   </span>
                 </span>
-                {r.ingredients.some((i) => i.perishable) ? (
-                  <span className="text-xs font-semibold text-muted">fresh</span>
-                ) : null}
+                {r.link ? <span className="text-xs font-semibold text-muted">link</span> : null}
               </Link>
             </li>
           ))}

@@ -14,11 +14,7 @@ export function formatQty(n: number): string {
   return String(Math.round(n * 100) / 100);
 }
 
-/** Normalize an ingredient name or unit so "Ground  Beef" and "ground beef" merge. */
+/** Normalize text for comparison and search: trim, lowercase, collapse spaces. */
 export function normalize(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
-export function itemKey(name: string, unit: string): string {
-  return `${normalize(name)}|${normalize(unit)}`;
 }

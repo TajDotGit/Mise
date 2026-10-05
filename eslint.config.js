@@ -43,6 +43,11 @@ export default tseslint.config(
     },
   },
   {
+    // Tests deliberately feed javascript: URLs in to prove they are rejected.
+    files: ['**/*.test.{ts,tsx}'],
+    rules: { 'no-script-url': 'off' },
+  },
+  {
     // Context modules export a provider plus its hook; fast refresh just reloads them.
     files: ['src/**/*Context.tsx'],
     rules: { 'react-refresh/only-export-components': 'off' },
@@ -58,6 +63,7 @@ export default tseslint.config(
           patterns: [
             { group: ['**/mock/**', '**/mock'], message: 'UI must get data via repositories (src/data hooks).' },
             { group: ['**/data/memory/**'], message: 'UI must not depend on a repository implementation.' },
+            { group: ['**/data/seed/**'], message: 'UI must read the catalog via useCatalog().' },
           ],
         },
       ],

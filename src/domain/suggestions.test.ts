@@ -1,13 +1,14 @@
-import { entry, ing, perishable, recipe } from '../test/factories';
-import type { Leftover } from './schemas';
+import { entry, ing, recipe } from '../test/factories';
+import type { Leftover, Unit } from './schemas';
 import { expiringLeftovers, proposeUseItUp, rankRecipes } from './suggestions';
 
 const today = '2026-10-05';
 const week = { start: '2026-10-05', end: '2026-10-11' };
 
-function leftover(name: string, unit: string, amount: number, useBy: string): Leftover {
+function leftover(ingredientId: string, name: string, unit: Unit, amount: number, useBy: string): Leftover {
   return {
-    key: `${name.toLowerCase()}|${unit}`,
+    key: `${ingredientId}|${unit}`,
+    ingredientId,
     name,
     unit,
     needed: 1,
@@ -19,22 +20,22 @@ function leftover(name: string, unit: string, amount: number, useBy: string): Le
   };
 }
 
-const beef = leftover('Ground beef', 'lb', 0.5, '2026-10-07');
-const cream = leftover('Cream', 'cup', 0.5, '2026-10-08');
+const beef = leftover('ground-beef', 'Ground beef', 'lb', 0.5, '2026-10-07');
+const cream = leftover('cream', 'Heavy cream', 'cup', 0.5, '2026-10-08');
 
-const shepherdsPie = recipe('pie', "Shepherd's pie", [perishable('Ground beef', 1, 'lb', 2, 1), ing('Potatoes', 2, 'lb')]);
-const pasta = recipe('pasta', 'Creamy pasta', [perishable('Cream', 0.25, 'cup', 5, 1)]);
+const shepherdsPie = recipe('pie', "Shepherd's pie", [ing('ground-beef', 1, 'lb'), ing('potato', 2, 'lb')]);
+const pasta = recipe('pasta', 'Creamy pasta', [ing('cream', 0.25, 'cup')]);
 const stroganoff = recipe('strog', 'Stroganoff', [
-  perishable('ground beef', 0.5, 'lb', 2, 1),
-  perishable('Cream', 0.5, 'cup', 5, 1),
+  ing('ground-beef', 0.5, 'lb'),
+  ing('cream', 0.5, 'cup'),
 ]);
-const salad = recipe('salad', 'Salad', [ing('Lettuce', 1, 'each')]);
+const salad = recipe('salad', 'Salad', [ing('lettuce', 1, 'head')]);
 const all = [shepherdsPie, pasta, stroganoff, salad];
 
 describe('expiringLeftovers', () => {
   it('keeps leftovers still good today within the window and drops expired or far-off ones', () => {
-    const expired = leftover('Fish', 'lb', 0.5, '2026-10-04');
-    const later = leftover('Carrots', 'lb', 1, '2026-10-20');
+    const expired = leftover('cod', 'Cod', 'lb', 0.5, '2026-10-04');
+    const later = leftover('carrot', 'Carrots', 'lb', 1, '2026-10-20');
     expect(expiringLeftovers([beef, expired, later, cream], today)).toEqual([beef, cream]);
   });
 });
@@ -51,8 +52,8 @@ describe('rankRecipes', () => {
   });
 
   it('prefers a recipe the leftover fully covers over one that needs more than is left', () => {
-    const exact = recipe('exact', 'Exact', [ing('Ground beef', 0.5, 'lb')]);
-    const greedy = recipe('greedy', 'Greedy', [ing('Ground beef', 2, 'lb')]);
+    const exact = recipe('exact', 'Exact', [ing('ground-beef', 0.5, 'lb')]);
+    const greedy = recipe('greedy', 'Greedy', [ing('ground-beef', 2, 'lb')]);
     expect(rankRecipes([beef], [greedy, exact]).map((r) => [r.recipe.id, r.score])).toEqual([
       ['exact', 1],
       ['greedy', 0.25],
@@ -61,18 +62,18 @@ describe('rankRecipes', () => {
 
   it('caps usage at what is left over', () => {
     const [pie] = rankRecipes([beef], [shepherdsPie]);
-    expect(pie?.uses).toEqual([{ key: 'ground beef|lb', name: 'Ground beef', unit: 'lb', quantity: 0.5, useBy: '2026-10-07' }]);
+    expect(pie?.uses).toEqual([{ key: 'ground-beef|lb', name: 'Ground beef', unit: 'lb', quantity: 0.5, useBy: '2026-10-07' }]);
   });
 
   it('does not match leftovers with a different unit', () => {
-    const grams = recipe('g', 'Grams', [ing('Ground beef', 200, 'g')]);
+    const grams = recipe('g', 'Ounces', [ing('ground-beef', 8, 'oz')]);
     expect(rankRecipes([beef], [grams])).toEqual([]);
   });
 
   it('breaks ties by the most urgent leftover, then by name', () => {
-    const usesBeef = recipe('x', 'Zed beef', [ing('Ground beef', 0.5, 'lb')]);
-    const usesCream = recipe('y', 'Alpha cream', [ing('Cream', 0.5, 'cup')]);
-    const usesBeefToo = recipe('z', 'Alpha beef', [ing('Ground beef', 0.5, 'lb')]);
+    const usesBeef = recipe('x', 'Zed beef', [ing('ground-beef', 0.5, 'lb')]);
+    const usesCream = recipe('y', 'Alpha cream', [ing('cream', 0.5, 'cup')]);
+    const usesBeefToo = recipe('z', 'Alpha beef', [ing('ground-beef', 0.5, 'lb')]);
     expect(rankRecipes([beef, cream], [usesCream, usesBeef, usesBeefToo]).map((r) => r.recipe.name)).toEqual([
       'Alpha beef',
       'Zed beef',
@@ -106,7 +107,7 @@ describe('proposeUseItUp', () => {
     const plan = ['2026-10-05', '2026-10-06', '2026-10-07'].map((d) => entry('salad', d));
     const proposals = proposeUseItUp({ leftovers: [beef, cream], recipes: all, plan, range: week, today });
     expect(proposals[0]?.date).toBe('2026-10-08');
-    expect(proposals[0]?.uses.map((u) => u.name)).toEqual(['Cream']);
+    expect(proposals[0]?.uses.map((u) => u.name)).toEqual(['Heavy cream']);
   });
 
   it('returns nothing when there are no open days', () => {

@@ -1,7 +1,7 @@
 import { addDays, daysBetween } from './dates';
 import { aggregateIngredients } from './grocery';
 import { roundQty } from './quantity';
-import type { DateRange, IsoDate, Leftover, PlanEntry, Recipe } from './schemas';
+import type { DateRange, IngredientCatalog, IsoDate, Leftover, PlanEntry, Recipe } from './schemas';
 
 /** Needed quantity rounded up to whole packs. No pack size means you buy exactly what you need. */
 export function purchasedQuantity(needed: number, packSize?: number): number {
@@ -19,10 +19,11 @@ export function purchasedQuantity(needed: number, packSize?: number): number {
 export function inferLeftovers(
   plan: PlanEntry[],
   recipes: Recipe[],
+  catalog: IngredientCatalog,
   range: DateRange,
   purchaseDate: IsoDate = range.start,
 ): Leftover[] {
-  return aggregateIngredients(plan, recipes, range)
+  return aggregateIngredients(plan, recipes, catalog, range)
     .filter((line) => line.perishable)
     .flatMap((line) => {
       const purchased = purchasedQuantity(line.quantity, line.packSize);
@@ -31,6 +32,7 @@ export function inferLeftovers(
       return [
         {
           key: line.key,
+          ingredientId: line.ingredientId,
           name: line.name,
           unit: line.unit,
           needed: line.quantity,
