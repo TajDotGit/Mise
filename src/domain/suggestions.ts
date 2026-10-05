@@ -16,7 +16,7 @@ export interface LeftoverUse {
 
 export interface RankedRecipe {
   recipe: Recipe;
-  /** Sum of the fraction of each leftover consumed (unit-agnostic). */
+  /** Sum over leftovers of used / max(needed, leftover): unit-agnostic, rewards an exact fit. */
   score: number;
   uses: LeftoverUse[];
   earliestUseBy: IsoDate;
@@ -58,7 +58,9 @@ export function rankRecipes(
       const need = needs.get(l.key);
       if (!need || l.leftover <= 0) continue;
       const quantity = roundQty(Math.min(need, l.leftover));
-      score += quantity / l.leftover;
+      // Full credit only when the leftover covers the recipe's need; a recipe that
+      // needs more than is left forces a new pack (and a new leftover), so it scores less.
+      score += quantity / Math.max(need, l.leftover);
       uses.push({ key: l.key, name: l.name, unit: l.unit, quantity, useBy: l.useBy });
     }
     if (uses.length === 0) continue;

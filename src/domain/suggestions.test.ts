@@ -44,8 +44,18 @@ describe('rankRecipes', () => {
     const ranked = rankRecipes([beef, cream], all);
     expect(ranked.map((r) => [r.recipe.name, r.score])).toEqual([
       ['Stroganoff', 2],
-      ["Shepherd's pie", 1],
+      // Needs 1 lb but only 0.5 lb is left: would force a new pack, so half credit.
+      ["Shepherd's pie", 0.5],
       ['Creamy pasta', 0.5],
+    ]);
+  });
+
+  it('prefers a recipe the leftover fully covers over one that needs more than is left', () => {
+    const exact = recipe('exact', 'Exact', [ing('Ground beef', 0.5, 'lb')]);
+    const greedy = recipe('greedy', 'Greedy', [ing('Ground beef', 2, 'lb')]);
+    expect(rankRecipes([beef], [greedy, exact]).map((r) => [r.recipe.id, r.score])).toEqual([
+      ['exact', 1],
+      ['greedy', 0.25],
     ]);
   });
 

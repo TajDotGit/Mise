@@ -44,7 +44,7 @@ export default tseslint.config(
   },
   {
     // Context modules export a provider plus its hook; fast refresh just reloads them.
-    files: ['src/data/**/*.tsx'],
+    files: ['src/**/*Context.tsx'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },
   {

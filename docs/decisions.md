@@ -11,10 +11,12 @@ Choices made where the brief was open. Newest at the bottom.
 | 5 | Ingredient lines merge only when the normalized name (trim, lowercase, collapse spaces) **and** unit match. No unit conversion. | Conversion (g ↔ lb, cups ↔ ml) is error-prone; separate lines are honest. |
 | 6 | When merged lines disagree, shortest `shelfLifeDays` wins, and the largest `packSize` wins. | Safer to warn early; packs are usually the same anyway. |
 | 7 | Urgency: expired (< 0 days), today (0), soon (1–2), later (3+). "Use it up" looks at leftovers with ≤ 3 days left. | Gives a clear red / amber / green split. |
-| 8 | Suggestion score = sum of the fraction of each expiring leftover a recipe consumes. Recipes already planned in the range are not suggested. | Unit-agnostic, and avoids "eat tacos twice". |
+| 8 | Suggestion score = sum over expiring leftovers of used ÷ max(recipe need, leftover), so a recipe the leftover fully covers beats one that forces buying another pack. Recipes already planned in the range are not suggested. | Unit-agnostic, and avoids "eat tacos twice". |
 | 9 | Repositories are async (Promise-based) and expose `subscribe()` for change notification. | Matches the shape a Supabase implementation (with realtime) will have. |
 | 10 | Grocery checked state is keyed by normalized name + unit. | Items are derived, so the key must be stable across recomputation. |
 | 11 | Mock plan dates are generated relative to today. | So the demo always shows leftovers nearing expiry. |
 | 12 | In-memory data resets on page reload. | Phase 0 has no persistence by design. |
 | 13 | TypeScript pinned to 6.0.x, not 7.x. | typescript-eslint currently supports TypeScript < 6.1. |
 | 14 | Deleting a recipe also clears its plan entries; domain functions ignore plan entries whose recipe is missing. | Keeps the plan consistent. |
+| 15 | jsdom 30 / vitest 5 do not support Node 25 (odd, non-LTS). `.nvmrc` pins Node 24 LTS; `engine-strict` is off so installs on 25 only warn. | Use `nvm use` for a supported runtime. |
+| 16 | `.npmrc` sets `ignore-scripts=true`; run `npm run prepare` once to install git hooks. | No dependency install scripts run (only fsevents declares one; it is optional). |
