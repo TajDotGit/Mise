@@ -50,8 +50,10 @@
 1. Look at leftovers that are not expired and expire within the next 3 days.
 2. For every recipe not already planned in the range, work out how much of each
    expiring leftover it would use (matching name and unit), capped at what is left.
-3. Score = sum of the *fraction* of each leftover it uses (so units never need
-   to be compared). Ties go to the recipe that uses the most urgent leftover, then
+3. Score = for each expiring leftover it uses, *amount used ÷ the larger of (what the
+   recipe needs, what is left)*, summed. Units never need comparing, and a recipe that
+   needs more than is left (forcing another pack, and a new leftover) scores lower.
+   Ties go to the recipe that uses the most urgent leftover, then
    alphabetical.
 4. Proposals: walk the open (unplanned) days from today forward. For each day,
    pick the best-scoring remaining recipe that only counts leftovers still good
