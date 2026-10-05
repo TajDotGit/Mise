@@ -25,7 +25,8 @@ Keep dependencies minimal. **Ask before adding any package** not already in
 
 | Task             | Command                    |
 | ---------------- | -------------------------- |
-| Install          | `npm ci`                   |
+| Install          | `nvm use` (Node 24 LTS), then `npm ci` |
+| Git hooks (once) | `npm run prepare` (install scripts are disabled in `.npmrc`) |
 | Dev server       | `npm run dev` → http://localhost:5173 |
 | Build            | `npm run build`            |
 | Tests            | `npm test` (watch: `npm run test:watch`) |
@@ -35,7 +36,9 @@ Keep dependencies minimal. **Ask before adding any package** not already in
 
 The pre-commit hook (`.husky/pre-commit`) runs gitleaks on staged changes, lint,
 and type check. CI (`.github/workflows/ci.yml`) runs lint, type check, tests,
-`npm audit --omit=dev`, and a gitleaks scan on every push and PR.
+`npm audit --omit=dev`, a build, and a gitleaks scan (checksum-verified MIT
+release binary, not the EULA-licensed action) on every push and PR. Custom
+gitleaks rules in `.gitleaks.toml` also flag email addresses and Supabase URLs.
 
 ## Folder structure
 

@@ -1,0 +1,18 @@
+# gitleaks configuration: default rules plus project-specific checks.
+title = "Mise gitleaks config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "supabase-project-url"
+description = "Supabase project URL (project URLs must not be committed)"
+regex = '''https://[a-z0-9]{20}\.supabase\.co'''
+
+[[rules]]
+id = "real-email-address"
+description = "Email address (no real emails in this public repo)"
+regex = '''[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(?:com|net|org|io|dev|co|me|app|edu)\b'''
+[[rules.allowlists]]
+regexTarget = "match"
+regexes = ['''noreply@anthropic\.com''', '''@users\.noreply\.github\.com''', '''@example\.(?:com|org|net)''']

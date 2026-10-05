@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --noEmit",
-    "secrets:scan": "gitleaks detect --redact --verbose --config .gitleaks.toml",
+    "secrets:scan": "gitleaks git --redact --verbose --config .gitleaks.toml .",
     "prepare": "husky"
   },
   "dependencies": {
