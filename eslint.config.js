@@ -43,6 +43,11 @@ export default tseslint.config(
     },
   },
   {
+    // Context modules export a provider plus its hook; fast refresh just reloads them.
+    files: ['src/data/**/*.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
     // UI must not reach around the repository layer.
     files: ['src/features/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
     ignores: ['**/*.test.{ts,tsx}'],
