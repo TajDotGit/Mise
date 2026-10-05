@@ -1,0 +1,24 @@
+import { addDays } from '../domain/dates';
+import { inferLeftovers, urgency } from '../domain/leftovers';
+import { RecipeSchema } from '../domain/schemas';
+import { proposeUseItUp } from '../domain/suggestions';
+import { buildMockPlan } from './plan';
+import { mockRecipes } from './recipes';
+
+const today = '2026-10-05';
+const range = { start: today, end: addDays(today, 6) };
+
+describe('mock data', () => {
+  it('has about 12 valid recipes', () => {
+    expect(mockRecipes.length).toBeGreaterThanOrEqual(12);
+    for (const r of mockRecipes) expect(() => RecipeSchema.parse(r)).not.toThrow();
+  });
+
+  it('produces at least two leftovers nearing expiry and a use-it-up proposal', () => {
+    const plan = buildMockPlan(today);
+    const leftovers = inferLeftovers(plan, mockRecipes, range);
+    const near = leftovers.filter((l) => ['today', 'soon'].includes(urgency(l.useBy, today)));
+    expect(near.length).toBeGreaterThanOrEqual(2);
+    expect(proposeUseItUp({ leftovers, recipes: mockRecipes, plan, range, today }).length).toBeGreaterThan(0);
+  });
+});
